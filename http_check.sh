@@ -5,9 +5,17 @@
 set -e
 
 #input variables section
-protocol=$(echo "$1" | awk -F ':' '{print $1}')
-host=$(echo "$1" | awk -F ':' '{print $2}' | cut -d '/' -f3)
-port=$(echo "$1" | awk -F ':' '{print $3}')
+if [[ $(echo "$1" | awk -F '://' '{print $0}' | grep http | wc -l | xargs) == 1 ]]; then
+    protocol=$(echo "$1" | awk -F ':' '{print $1}')
+    host=$(echo "$1" | awk -F ':' '{print $2}' | cut -d '/' -f3)
+    port=$(echo "$1" | awk -F ':' '{print $3}')
+else
+    echo -e "Protocol is unset, using HTTP"
+    protocol='http'
+    host=$(echo "$1" | awk -F ':' '{print $1}' | cut -d '/' -f3)
+    port=$(echo "$1" | awk -F ':' '{print $2}')
+fi
+
 cycles=$2
 
 #check if input variable was passed
@@ -21,13 +29,13 @@ if [[ $# -eq 0 ]]; then
 fi
 
 #check cycles
-if [ -z $cycles ]; then
+if [[ -z $cycles ]]; then
     echo -e "Number of cycles is unset, using default value"
     cycles=10
 fi
 
 #check port
-if [ -z $port ]; then
+if [[ -z $port ]]; then
     echo -e "Port is unset, using default value"
     if [[ $protocol == 'http' ]]; then
         port=80
